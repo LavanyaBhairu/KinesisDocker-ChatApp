@@ -26,6 +26,8 @@ app.use("/api/users", userRoutes);
 
 app.use(express.static(path.join(__dirname, "/frontend/dist")));
 
+app.use("/uploads", express.static(path.join(process.cwd(), "backend/uploads")));
+
 // app.get("/", (req, res) => {
      //root route http://localhost:5000
 //     res.send("Hello world!");

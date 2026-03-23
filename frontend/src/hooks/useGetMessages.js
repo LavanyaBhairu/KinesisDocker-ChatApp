@@ -13,7 +13,7 @@ const useGetMessages = () => {
 				const res = await fetch(`/api/messages/${selectedConversation._id}`);
 				const data = await res.json();
 				if (data.error) throw new Error(data.error);
-				setMessages(data);
+				setMessages(data.messages || []);
 			} catch (error) {
 				toast.error(error.message);
 			} finally {
@@ -21,7 +21,8 @@ const useGetMessages = () => {
 			}
 		};
 
-		if (selectedConversation?._id) getMessages();
+		if (!selectedConversation || !selectedConversation._id) return;
+		getMessages();
 	}, [selectedConversation?._id, setMessages]);
 
 	return { messages, loading };

@@ -6,20 +6,31 @@ const useSendMessage = () => {
 	const [loading, setLoading] = useState(false);
 	const { messages, setMessages, selectedConversation } = useConversation();
 
-	const sendMessage = async (message) => {
+	// 👇 CHANGE PARAM → now accepts object
+	const sendMessage = async (data) => {
 		setLoading(true);
-		try {
-			const res = await fetch(`/api/messages/send/${selectedConversation._id}`, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({ message }),
-			});
-			const data = await res.json();
-			if (data.error) throw new Error(data.error);
 
-			setMessages([...messages, data]);
+		try {
+			const res = await fetch(
+				`/api/messages/send/${selectedConversation._id}`,
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						message: data.message || "",
+						files: data.files || [],
+					}),
+				}
+			);
+
+			const result = await res.json();
+
+			if (result.error) throw new Error(result.error);
+
+			// 👇 append new message
+			setMessages([...messages, result]);
 		} catch (error) {
 			toast.error(error.message);
 		} finally {
@@ -29,4 +40,5 @@ const useSendMessage = () => {
 
 	return { sendMessage, loading };
 };
+
 export default useSendMessage;

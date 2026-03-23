@@ -5,9 +5,16 @@ import Message from "./Message";
 import useListenMessages from "../../hooks/useListenMessages";
 
 const Messages = () => {
-	const { messages, loading } = useGetMessages();
+	const { messages = [], loading } = useGetMessages();
+	console.log("MESSAGES ARRAY:", messages);
+
+	const safeMessages = Array.isArray(messages) ? messages : [];
 	useListenMessages();
 	const lastMessageRef = useRef();
+
+	console.log("TYPE OF MESSAGES:", typeof messages);
+	console.log("IS ARRAY:", Array.isArray(messages));
+	console.log("MESSAGES:", messages);
 
 	useEffect(() => {
 		setTimeout(() => {
@@ -18,12 +25,17 @@ const Messages = () => {
 	return (
 		<div className='px-4 flex-1 overflow-auto'>
 			{!loading &&
-				messages.length > 0 &&
-				messages.map((message) => (
-					<div key={message._id} ref={lastMessageRef}>
-						<Message message={message} />
+				safeMessages.length > 0 &&
+				safeMessages
+				.filter((msg) => msg && msg._id)
+				.map((message, index) => (
+					<div
+					key={message._id || index}
+					ref={index === safeMessages.length - 1 ? lastMessageRef : null}
+					>
+					<Message message={message} />
 					</div>
-				))}
+			))}
 
 			{loading && [...Array(3)].map((_, idx) => <MessageSkeleton key={idx} />)}
 			{!loading && messages.length === 0 && (

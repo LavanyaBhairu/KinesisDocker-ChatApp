@@ -14,8 +14,19 @@ const messageSchema = new mongoose.Schema(
 		},
 		message: {
 			type: String,
-			required: true,
+			default: "",
 		},
+		files: [
+		{
+			fileUrl: String,
+			fileType: String,
+		},
+		],
+		status: {
+		type: String,
+		enum: ["sent", "delivered", "seen"],
+		default: "sent",
+	},
 		// createdAt, updatedAt
 	},
 	{ timestamps: true }
