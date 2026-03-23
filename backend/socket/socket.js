@@ -2,6 +2,7 @@ import { Server } from "socket.io";
 import http from "http";
 import express from "express";
 import Message from "../models/message.model.js";
+import User from "../models/user.model.js";
 
 const app = express();
 
@@ -19,11 +20,15 @@ export const getReceiverSocketId = (receiverId) => {
 
 const userSocketMap = {}; // {userId: socketId}
 
-io.on("connection", (socket) => {
+io.on("connection", async (socket) => {
 	console.log("a user connected", socket.id);
 
 	const userId = socket.handshake.query.userId;
 	if (userId != "undefined") userSocketMap[userId] = socket.id;
+
+	await User.findByIdAndUpdate(userId, {
+		lastSeen: null,
+	});
 
 	// io.emit() is used to send events to all the connected clients
 	io.emit("getOnlineUsers", Object.keys(userSocketMap));
@@ -43,9 +48,14 @@ io.on("connection", (socket) => {
 	});
 
 	// socket.on() is used to listen to the events. can be used both on client and server side
-	socket.on("disconnect", () => {
+	socket.on("disconnect", async () => {
 		console.log("user disconnected", socket.id);
 		delete userSocketMap[userId];
+
+		// ✅ UPDATE LAST SEEN
+		await User.findByIdAndUpdate(userId, {
+			lastSeen: new Date(),
+		});
 		io.emit("getOnlineUsers", Object.keys(userSocketMap));
 	});
 
@@ -63,7 +73,7 @@ io.on("connection", (socket) => {
 	// send to receiver
 	if (receiverSocketId) {
 		message.status = "delivered";
-		io.to(receiverSocketId).emit("newMessage", newMessage);
+		io.to(receiverSocketId).emit("newMessage", updatedMessage);
 	}
 
 	// ALSO notify sender

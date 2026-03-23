@@ -8,7 +8,7 @@ import { useSocketContext } from "../../context/SocketContext";
 
 const MessageContainer = () => {
 	const { selectedConversation, setSelectedConversation, messages } = useConversation();
-	const { socket } = useSocketContext();
+	const { socket, onlineUsers } = useSocketContext();
 
 	const [isTyping, setIsTyping] = useState(false);
 
@@ -49,6 +49,20 @@ const MessageContainer = () => {
 
 		}, [messages, selectedConversation, socket]);
 
+		const isOnline = onlineUsers?.includes(selectedConversation?._id);
+
+		const getLastSeen = (lastSeen) => {
+			if (!lastSeen) return "";
+
+			const diff = Math.floor((Date.now() - new Date(lastSeen)) / 1000);
+
+			if (diff < 60) return "last seen just now";
+			if (diff < 3600) return `last seen ${Math.floor(diff / 60)} min ago`;
+			if (diff < 86400) return `last seen ${Math.floor(diff / 3600)} hr ago`;
+
+			return `last seen ${Math.floor(diff / 86400)} days ago`;
+		};
+
 	return (
 		<div className='md:min-w-[450px] flex flex-col'>
 			{!selectedConversation ? (
@@ -56,10 +70,15 @@ const MessageContainer = () => {
 			) : (
 				<>
 					<div className='bg-slate-500 px-4 py-2 mb-2'>
-						<span className='label-text'>To:</span>{" "}
-						<span className='text-gray-900 font-bold'>
-							{selectedConversation.fullName}
-						</span>
+						<p className='text-gray-900 font-bold'>
+							To: {selectedConversation.fullName}
+						</p>
+
+						<p className='text-sm text-gray-200'>
+							{isOnline
+								? "🟢 Online"
+								: getLastSeen(selectedConversation.lastSeen)}
+						</p>
 					</div>
 
 					{/* ✅ TYPING UI */}
