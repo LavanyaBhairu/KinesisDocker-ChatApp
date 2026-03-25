@@ -100,6 +100,41 @@ io.on("connection", async (socket) => {
 		});
 		}
 	});
+
+	socket.on("reactMessage", async ({ messageId, userId, emoji }) => {
+	try {
+		const message = await Message.findById(messageId);
+
+		// check if user already reacted
+		const existingReaction = message.reactions.find(
+			(r) => r.userId.toString() === userId
+		);
+
+		if (existingReaction) {
+			// update emoji
+			existingReaction.emoji = emoji;
+		} else {
+			// add new reaction
+			message.reactions.push({ userId, emoji });
+		}
+
+		await message.save();
+
+		// send update to both users
+		const receiverSocketId = getReceiverSocketId(message.receiverId);
+		const senderSocketId = getReceiverSocketId(message.senderId);
+
+		if (receiverSocketId) {
+			io.to(receiverSocketId).emit("messageReacted", message);
+		}
+		if (senderSocketId) {
+			io.to(senderSocketId).emit("messageReacted", message);
+		}
+	} catch (err) {
+		console.log("Reaction error:", err.message);
+	}
+});
+
 });
 
 export { app, io, server };

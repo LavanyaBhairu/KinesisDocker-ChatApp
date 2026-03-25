@@ -3,73 +3,71 @@ import useGetMessages from "../../hooks/useGetMessages";
 import MessageSkeleton from "../skeletons/MessageSkeleton";
 import Message from "./Message";
 import useListenMessages from "../../hooks/useListenMessages";
+import { useSocketContext } from "../../context/SocketContext";
+import useConversation from "../../zustand/useConversation";
 
 const Messages = () => {
 	const { messages = [], loading } = useGetMessages();
-	console.log("MESSAGES ARRAY:", messages);
+	const { socket } = useSocketContext();
+	const { setMessages } = useConversation();
 
 	const safeMessages = Array.isArray(messages) ? messages : [];
 	useListenMessages();
 	const lastMessageRef = useRef();
 
-	console.log("TYPE OF MESSAGES:", typeof messages);
-	console.log("IS ARRAY:", Array.isArray(messages));
-	console.log("MESSAGES:", messages);
-
+	// ✅ AUTO SCROLL
 	useEffect(() => {
 		setTimeout(() => {
 			lastMessageRef.current?.scrollIntoView({ behavior: "smooth" });
 		}, 100);
 	}, [messages]);
 
+	// ✅ LISTEN REACTIONS
+	useEffect(() => {
+		if (!socket) return;
+
+		const handleReaction = (updatedMessage) => {
+			setMessages(
+				messages.map((msg) =>
+					msg._id === updatedMessage._id ? updatedMessage : msg
+				)
+			);
+		};
+
+		socket.on("messageReacted", handleReaction);
+
+		return () => socket.off("messageReacted", handleReaction);
+	}, [socket, messages, setMessages]);
+
 	return (
-		<div className='px-4 flex-1 overflow-auto'>
+		<div className='px-4 flex-1 overflow-y-auto min-h-0'>
 			{!loading &&
 				safeMessages.length > 0 &&
-				safeMessages
-				.filter((msg) => msg && msg._id)
-				.map((message, index) => (
+				safeMessages.map((message, index) => (
 					<div
-					key={message._id || index}
-					ref={index === safeMessages.length - 1 ? lastMessageRef : null}
+						key={message._id || index}
+						ref={
+							index === safeMessages.length - 1
+								? lastMessageRef
+								: null
+						}
 					>
-					<Message message={message} />
+						<Message message={message} />
 					</div>
-			))}
+				))}
 
-			{loading && [...Array(3)].map((_, idx) => <MessageSkeleton key={idx} />)}
-			{!loading && messages.length === 0 && (
-				<p className='text-center'>Send a message to start the conversation</p>
+			{loading &&
+				[...Array(3)].map((_, idx) => (
+					<MessageSkeleton key={idx} />
+				))}
+
+			{!loading && safeMessages.length === 0 && (
+				<p className='text-center'>
+					Send a message to start the conversation
+				</p>
 			)}
 		</div>
 	);
 };
+
 export default Messages;
-
-
-// STARTER CODE SNIPPET
-// import Message from "./Message";
-// import useGetMessages from "../../hooks/useGetMessages";
-
-// const Messages = () => {
-// 	const { messages, loading } = useGetMessages();
-// console.log("messages:", messages);
-
-// 	return (
-// 		<div className='px-4 flex-1 overflow-auto'>
-// 			<Message />
-// 			<Message />
-// 			<Message />
-// 			<Message />
-// 			<Message />
-// 			<Message />
-// 			<Message />
-// 			<Message />
-// 			<Message />
-// 			<Message />
-// 			<Message />
-// 			<Message />
-// 		</div>
-// 	);
-// };
-// export default Messages;

@@ -22,6 +22,15 @@ const messageSchema = new mongoose.Schema(
 			fileType: String,
 		},
 		],
+		reactions: [
+		{
+			userId: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "User",
+			},
+			emoji: String,
+		},
+		],
 		status: {
 		type: String,
 		enum: ["sent", "delivered", "seen"],
