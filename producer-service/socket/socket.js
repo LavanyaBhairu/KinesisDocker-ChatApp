@@ -27,9 +27,9 @@ io.on("connection", async (socket) => {
 	const userId = socket.handshake.query.userId;
 	if (userId != "undefined") userSocketMap[userId] = socket.id;
 
-	await User.findByIdAndUpdate(userId, {
-		lastSeen: null,
-	});
+	// await User.findByIdAndUpdate(userId, {
+	// 	lastSeen: null,
+	// });
 
 	// io.emit() is used to send events to all the connected clients
 	io.emit("getOnlineUsers", Object.keys(userSocketMap));
@@ -54,9 +54,10 @@ io.on("connection", async (socket) => {
 		delete userSocketMap[userId];
 
 		// ✅ UPDATE LAST SEEN
-		await User.findByIdAndUpdate(userId, {
-			lastSeen: new Date(),
-		});
+		
+		// await User.findByIdAndUpdate(userId, {
+		// 	lastSeen: new Date(),
+		// });
 		io.emit("getOnlineUsers", Object.keys(userSocketMap));
 	});
 

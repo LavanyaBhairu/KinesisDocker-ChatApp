@@ -1,19 +1,16 @@
 import mongoose from "mongoose";
-import { type } from "node:os";
 
 const messageSchema = new mongoose.Schema(
 	{
 		senderId: {
 			type: String,
-			// type: mongoose.Schema.Types.ObjectId,
-			// ref: "User",
-			// required: true,
+			ref: "User",
+			required: true,
 		},
 		receiverId: {
 			type: String,
-			// type: mongoose.Schema.Types.ObjectId,
-			// ref: "User",
-			// required: true,
+			ref: "User",
+			required: true,
 		},
 		message: {
 			type: String,

@@ -6,7 +6,7 @@ export const sendMessage = async (req, res) => {
 	try {
 		const { message, files } = req.body;
 		const { id: receiverId } = req.params;
-		const senderId = req.user._id;
+		const senderId = "test-user";
 
 		// ✅ VALIDATION
 		if ((!message || message.trim() === "") && (!files || files.length === 0)) {
